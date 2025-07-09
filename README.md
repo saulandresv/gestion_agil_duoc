@@ -1,55 +1,152 @@
 # DUOC Inventario
 
-Un sistema integral de gestión de inventario diseñado para operaciones mineras, con una arquitectura multicapa que permite funcionamiento sin conexión y sincronización en tiempo real.
+Sistema de gestión de inventario con autenticación por roles y funcionalidad offline.
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ Arquitectura
 
-El sistema está compuesto por tres componentes principales:
+- **Frontend**: Vue 3 PWA con autenticación OAuth2
+- **API**: Express.js con SQLite (modo desarrollo)
+- **Autenticación**: Sistema de roles (admin, supervisor, storekeeper, operador)
 
-### 🖥️ Frontend - Vue 3 PWA
+## 🚀 Instalación
 
-Una Aplicación Web Progresiva (PWA) construida con Vue 3 que proporciona la interfaz principal para la gestión de inventario.
+### 1. Configurar variables de entorno
 
-**Características Clave:**
-- **Diseño offline-first** con caché en IndexedDB
-- **Soporte para autenticación con RFID** junto con inicio de sesión tradicional
-- **Indicador de estado de conexión en tiempo real**
-- **Interfaz multi-pantalla** con control de acceso por rol
-- **Diseño responsivo** optimizado para dispositivos móviles y de escritorio
+```bash
+# Copiar archivos de configuración
+cp .env.sample .env
+cp api/.env.sample api/.env
+```
 
-**Pantallas Principales:**
-- **Login / Autenticación RFID** – Autenticación segura de usuarios
-- **Panel Principal (Dashboard)** – Centro de navegación con información del usuario
-- **Gestión de Inventario** – Listado de productos con búsqueda y filtros
-- **Editor de Productos** – CRUD completo para productos
-- **Registro de Movimientos** – Registro de entradas, salidas y ajustes de stock
-- **Historial de Movimientos** – Registro completo de transacciones con filtros
-- **Búsqueda de Solicitudes** – Aprobación o rechazo de solicitudes pendientes
+### 2. Instalar dependencias
 
-### 🔧 API - Backend con Express.js
-
-Servidor API RESTful que maneja toda la lógica de negocio y las operaciones con la base de datos.
-
-**Características:**
-- Integración con base de datos **PostgreSQL**
-- Gestión de procesos con **PM2** para despliegue en producción
-- Servicio de **autenticación** con gestión de sesiones
-- **Validación de stock** y seguimiento de movimientos
-- Flujo de trabajo para **aprobación de solicitudes**
-
-## 🚀 Inicio Rápido
-
-### Requisitos Previos
-- Node.js (versión especificada en `front/.nvmrc`)
-- Python 3.x
-- Base de datos PostgreSQL
-- PM2 instalado globalmente
-
-### Configuración en Desarrollo
-
-1. **Frontend:**
+**Frontend:**
 ```bash
 cd front
-nvm use                   # Usar versión específica de Node.js
-npm install               # Instalar dependencias
-npm run serve             # Iniciar servidor de desarrollo
+npm install
+```
+
+**API:**
+```bash
+cd api
+npm install
+```
+
+### 3. Iniciar en desarrollo
+
+**Terminal 1 - API:**
+```bash
+cd api
+node index.js
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd front
+npm run serve
+```
+
+## 🔑 Usuarios predeterminados
+
+| Usuario | Contraseña | Rol |
+|---------|------------|-----|
+| admin | password | Administrador |
+| manuel.reyes | password | Supervisor |
+| andres.leon | password | Bodeguero |
+| andres.perez | password | Operador |
+
+## 📱 Funcionalidades por Rol
+
+### 👑 Administrador
+- Crear y gestionar usuarios
+- Acceso completo al sistema
+- Asignar permisos por rol
+
+### 👨‍💼 Supervisor
+- Registrar entrada/salida de componentes
+- Buscar componentes
+- Visualizar inventario
+- Crear y editar productos
+
+### 📦 Bodeguero
+- Registrar entrada/salida de componentes
+- Buscar componentes
+- Visualizar inventario
+
+### 👷 Operador
+- Visualizar inventario (solo lectura)
+- Crear solicitudes de componentes
+
+## 🛠️ Comandos útiles
+
+```bash
+# Instalar dependencias frontend
+cd front && npm install
+
+# Servir frontend en desarrollo
+cd front && npm run serve
+
+# Construir para producción
+cd front && npm run build
+
+# Linter
+cd front && npm run lint
+
+# Iniciar API
+cd api && node index.js
+
+# Ver logs en tiempo real
+cd api && tail -f logs/app.log
+```
+
+## 📁 Estructura del proyecto
+
+```
+├── front/          # Vue 3 PWA
+│   ├── src/
+│   │   ├── views/     # Páginas principales
+│   │   ├── services/  # API y autenticación
+│   │   └── utils/     # Utilidades y guards
+├── api/            # Express.js API
+│   ├── index.js       # Servidor principal
+│   ├── oauthModel.js  # Modelo OAuth2
+│   └── database.js    # Conexión BD compartida
+└── README.md
+```
+
+## 🔧 Configuración
+
+### Variables de entorno (.env)
+```env
+NODE_ENV=development
+PORT=3001
+DB_PATH=./inventario.db
+```
+
+### Variables de entorno frontend (front/.env)
+```env
+VUE_APP_API_BASE_URL=http://localhost:3001
+```
+
+## 🚀 Despliegue
+
+### Frontend
+```bash
+cd front
+npm run build
+# Servir desde dist/
+```
+
+### API
+```bash
+cd api
+pm2 start index.js --name inventario-api
+```
+
+## 📋 Notas técnicas
+
+- **Base de datos**: SQLite en desarrollo, PostgreSQL en producción
+- **Autenticación**: OAuth2 con Bearer tokens
+- **Persistencia**: Archivo JSON para desarrollo
+- **Roles**: Control de acceso basado en roles (RBAC)
+- **Offline**: PWA con capacidades offline
