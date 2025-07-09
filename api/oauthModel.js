@@ -1,35 +1,13 @@
 // api/oauthModel.js
-// Use stub implementation to avoid native binding issues
-const Database = require('./sqlite-stub');
+// Use shared database connection
+const dbManager = require('./database');
 const bcrypt = require('bcrypt');
 
-// SQLite database connection (using stub)
-const dbPath = process.env.DB_PATH || './inventario.db';
-const db = new Database(dbPath);
+// Use shared database connection
+const db = dbManager.getDb();
+const query = dbManager.query.bind(dbManager);
 
-// Enable foreign key constraints
-db.pragma('foreign_keys = ON');
-
-console.log('✅ OAuth using SQLite stub implementation');
-
-// Helper function to convert PostgreSQL queries to SQLite
-const query = async (sql, params = []) => {
-  try {
-    // Convert PostgreSQL placeholders ($1, $2) to SQLite (?)
-    let sqliteSQL = sql.replace(/\$\d+/g, '?');
-    
-    if (sqliteSQL.trim().toUpperCase().startsWith('SELECT')) {
-      const rows = db.prepare(sqliteSQL).all(params);
-      return { rows };
-    } else {
-      const result = db.prepare(sqliteSQL).run(params);
-      return { rows: [{ id: result.lastInsertRowid, changes: result.changes }] };
-    }
-  } catch (error) {
-    console.error('OAuth Database query error:', error);
-    throw error;
-  }
-};
+console.log('✅ OAuth using shared database connection');
 
 // Create OAuth tables if they don't exist
 const initializeOAuthTables = async () => {
@@ -120,30 +98,38 @@ module.exports = {
   // Authenticate user with username/password
   async getUser(username, password) {
     try {
+      console.log('getUser called with username:', username);
       const result = await query(
         'SELECT id, username, password_hash, full_name, role FROM users WHERE username = ?',
         [username]
       );
 
+      console.log('Query result:', result.rows.length, 'rows');
       if (result.rows.length === 0) {
+        console.log('No user found with username:', username);
         return null;
       }
 
       const user = result.rows[0];
+      console.log('Found user:', { id: user.id, username: user.username, role: user.role });
       
       // Verify password using bcrypt
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
+      console.log('Password validation result:', isValidPassword);
       
       if (!isValidPassword) {
+        console.log('Invalid password for user:', username);
         return null;
       }
 
-      return {
+      const userResult = {
         id: user.id,
         username: user.username,
         fullName: user.full_name,
         role: user.role
       };
+      console.log('Returning user:', userResult);
+      return userResult;
     } catch (error) {
       console.error('Error in getUser:', error);
       return null;
@@ -153,6 +139,13 @@ module.exports = {
   // Save access token to database
   async saveToken(token, client, user) {
     try {
+      console.log('saveToken called with token:', {
+        accessToken: token.accessToken,
+        accessTokenExpiresAt: token.accessTokenExpiresAt,
+        accessTokenExpiresAtType: typeof token.accessTokenExpiresAt,
+        isDate: token.accessTokenExpiresAt instanceof Date
+      });
+      
       const result = await query(
         `INSERT INTO oauth_access_tokens 
          (access_token, access_token_expires_at, client_id, user_id) 
@@ -180,11 +173,11 @@ module.exports = {
         );
       }
 
-      return {
+      const returnToken = {
         accessToken: token.accessToken,
-        accessTokenExpiresAt: token.accessTokenExpiresAt,
+        accessTokenExpiresAt: token.accessTokenExpiresAt instanceof Date ? token.accessTokenExpiresAt : new Date(token.accessTokenExpiresAt),
         refreshToken: token.refreshToken,
-        refreshTokenExpiresAt: token.refreshTokenExpiresAt,
+        refreshTokenExpiresAt: token.refreshTokenExpiresAt instanceof Date ? token.refreshTokenExpiresAt : new Date(token.refreshTokenExpiresAt),
         client: { id: client.id },
         user: user ? { 
           id: user.id, 
@@ -193,6 +186,14 @@ module.exports = {
           role: user.role
         } : null
       };
+      
+      console.log('saveToken returning:', {
+        accessTokenExpiresAt: returnToken.accessTokenExpiresAt,
+        accessTokenExpiresAtType: typeof returnToken.accessTokenExpiresAt,
+        isDate: returnToken.accessTokenExpiresAt instanceof Date
+      });
+      
+      return returnToken;
     } catch (error) {
       console.error('Error in saveToken:', error);
       return null;

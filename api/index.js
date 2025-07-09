@@ -1,8 +1,8 @@
 require("dotenv").config(); // Carga DATABASE_URL y PORT de .env
 const express = require("express");
 const cors = require("cors");
-// Use stub implementation to avoid native binding issues
-const Database = require('./sqlite-stub');
+// Use shared database connection
+const dbManager = require('./database');
 const OAuthServer = require('express-oauth-server');
 const axios = require('axios');
 const fs = require('fs');
@@ -20,52 +20,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 1. SQLite database connection (using stub)
-const dbPath = process.env.DB_PATH || './inventario.db';
-const db = new Database(dbPath);
-
-// Enable foreign key constraints and WAL mode for better performance
-db.pragma('foreign_keys = ON');
-db.pragma('journal_mode = WAL');
-
-console.log('✅ Using SQLite stub implementation for demonstration');
-console.log('📝 This shows the PostgreSQL → SQLite migration is complete');
-console.log('🔧 To use real SQLite, fix the native binding compilation issues');
-
-// Helper function to convert PostgreSQL queries to SQLite
-const query = async (sql, params = []) => {
-  try {
-    // Convert PostgreSQL placeholders ($1, $2) to SQLite (?)
-    let sqliteSQL = sql.replace(/\$\d+/g, '?');
-    
-    // Convert PostgreSQL-specific functions to SQLite equivalents
-    sqliteSQL = sqliteSQL.replace(/NOW\(\)/g, "datetime('now')");
-    sqliteSQL = sqliteSQL.replace(/CURRENT_TIMESTAMP/g, "datetime('now')");
-    sqliteSQL = sqliteSQL.replace(/COALESCE\(/g, 'IFNULL(');
-    sqliteSQL = sqliteSQL.replace(/::int/g, '');
-    sqliteSQL = sqliteSQL.replace(/::timestamp/g, '');
-    sqliteSQL = sqliteSQL.replace(/JSONB/g, 'TEXT');
-    
-    if (sqliteSQL.trim().toUpperCase().startsWith('SELECT')) {
-      const rows = db.prepare(sqliteSQL).all(params);
-      return { rows };
-    } else {
-      const result = db.prepare(sqliteSQL).run(params);
-      return { rows: [{ id: result.lastInsertRowid, changes: result.changes }] };
-    }
-  } catch (error) {
-    console.error('Database query error:', error);
-    console.error('SQL:', sql);
-    console.error('Params:', params);
-    throw error;
-  }
-};
-
-// Create a pool-like interface for compatibility
-const pool = {
-  query,
-  connect: () => ({ query, release: () => {} })
-};
+// Use shared database connection
+const db = dbManager.getDb();
+const query = dbManager.query.bind(dbManager);
+const pool = dbManager.getPool();
 
 // Initialize database schema on startup
 
@@ -152,6 +110,12 @@ app.use('/api', app.oauth.authenticate());
 // User profile endpoint
 app.get("/api/user/profile", async (req, res) => {
   try {
+    console.log("OAuth token data:", {
+      token: res.locals.oauth.token,
+      user: res.locals.oauth.token.user,
+      userId: res.locals.oauth.token.user?.id
+    });
+    
     const userId = res.locals.oauth.token.user.id;
     
     const { rows } = await pool.query(
@@ -1064,6 +1028,107 @@ app.get("/personas", async (req, res) => {
   } catch (err) {
     console.error("Error en GET /personas:", err);
     res.status(500).json({ error: "Error al obtener personas" });
+  }
+});
+
+// Users endpoints
+app.get("/users", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, username, full_name, role, shift_id, created_at
+       FROM users
+       ORDER BY created_at DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error en GET /users:", err);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+});
+
+app.post("/users", async (req, res) => {
+  try {
+    const { username, fullName, password, role, shiftId } = req.body;
+
+    // Validate required fields
+    if (!username || !fullName || !password || !role) {
+      return res.status(400).json({ error: "Faltan campos requeridos: username, fullName, password, role" });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'operador', 'supervisor', 'storekeeper'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Rol inválido. Roles válidos: ${validRoles.join(', ')}` });
+    }
+
+    // Check if username already exists
+    const { rows: existingUsers } = await pool.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ error: `El nombre de usuario '${username}' ya existe` });
+    }
+
+    // Validate shift if provided
+    if (shiftId) {
+      const { rows: shifts } = await pool.query(
+        'SELECT id FROM shifts WHERE id = $1',
+        [shiftId]
+      );
+      if (shifts.length === 0) {
+        return res.status(400).json({ error: `El turno con ID ${shiftId} no existe` });
+      }
+    }
+
+    // Hash password
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Insert new user
+    const { rows } = await pool.query(
+      `INSERT INTO users (username, full_name, password_hash, role, shift_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+       RETURNING id, username, full_name, role, shift_id, created_at`,
+      [username, fullName, passwordHash, role, shiftId || null]
+    );
+
+    const newUser = rows[0];
+    
+    // Remove password hash from response
+    const { password_hash, ...userResponse } = newUser;
+
+    res.status(201).json({
+      success: true,
+      message: `Usuario '${username}' creado exitosamente`,
+      user: userResponse
+    });
+
+  } catch (err) {
+    console.error("Error en POST /users:", err);
+    res.status(500).json({ error: "Error al crear usuario" });
+  }
+});
+
+// Get shifts endpoint
+app.get("/shifts", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, code, start_time, end_time, cycle_start_day, cycle_end_day
+       FROM shifts
+       ORDER BY id`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error en GET /shifts:", err);
+    res.status(500).json({ error: "Error al obtener turnos" });
   }
 });
 

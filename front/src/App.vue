@@ -1,13 +1,12 @@
 <template>
   <nav v-if="isLogged">
-    <span class="user-display">👤 {{ currentUser }}</span>
-    <router-link to="/">Dashboard</router-link> |
-    <router-link to="/inventario">Inventario</router-link> |
-    <router-link to="/movimientos">Movimientos</router-link> |
-    <router-link to="/movimiento-crear">Crear Movimiento</router-link> |
-    <router-link to="/buscar-solicitud">Buscar Solicitud</router-link> |
-    <router-link to="/requests-pendientes">Pendientes</router-link> |
-    <span @click="logout()">Logout</span>
+    <span class="user-display">👤 {{ currentUser }} ({{ userRole }})</span>
+    <template v-for="(item, index) in menuItems" :key="item.path">
+      <router-link :to="item.path">{{ item.name }}</router-link>
+      <span v-if="index < menuItems.length - 1"> | </span>
+    </template>
+    <span v-if="menuItems.length > 0"> | </span>
+    <span @click="logout()" class="logout-btn">Logout</span>
     <span
       v-if="showNotificationButton"
       @click="enableNotifications"
@@ -24,6 +23,7 @@
 import auth from "@/services/auth";
 import api from "@/services/api";
 import backgroundSync from "@/services/backgroundSync";
+import roleGuard from "@/utils/roleGuard";
 export default {
   data() {
     return {
@@ -31,6 +31,7 @@ export default {
       lastSyncTime: null,
       syncInterval: null,
       currentUser: "Usuario",
+      userRole: "guest",
       notificationPermission: "default",
     };
   },
@@ -66,6 +67,7 @@ export default {
   methods: {
     logout() {
       auth.logout();
+      this.userRole = "guest";
       this.$router.push({ name: "login" });
     },
     updateOnline() {
@@ -94,6 +96,7 @@ export default {
     loadUserProfile() {
       const currentUser = auth.getCurrentUser();
       this.currentUser = currentUser.fullName || "Usuario";
+      this.userRole = currentUser.role || "guest";
     },
     async enableNotifications() {
       try {
@@ -113,6 +116,10 @@ export default {
   computed: {
     isLogged() {
       return auth.isAuthenticated.value;
+    },
+    menuItems() {
+      if (!this.isLogged) return [];
+      return roleGuard.getMenuItems();
     },
     showNotificationButton() {
       return (
@@ -195,6 +202,17 @@ nav a.router-link-exact-active {
   font-size: 0.9rem;
   color: #2c3e50;
   font-weight: bold;
+}
+
+.logout-btn {
+  cursor: pointer;
+  color: #d32f2f;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.logout-btn:hover {
+  color: #b71c1c;
 }
 
 .notification-enable {
