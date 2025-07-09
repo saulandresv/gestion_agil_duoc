@@ -1031,9 +1031,15 @@ app.get("/personas", async (req, res) => {
   }
 });
 
-// Users endpoints
-app.get("/users", async (req, res) => {
+// Users endpoints (admin only)
+app.get("/api/users", async (req, res) => {
   try {
+    // Check if user is admin
+    const currentUserRole = res.locals.oauth.token.user.role;
+    if (currentUserRole !== 'admin') {
+      return res.status(403).json({ error: "Acceso denegado. Solo administradores pueden ver usuarios." });
+    }
+    
     const { rows } = await pool.query(
       `SELECT id, username, full_name, role, shift_id, created_at
        FROM users
@@ -1041,13 +1047,19 @@ app.get("/users", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("Error en GET /users:", err);
+    console.error("Error en GET /api/users:", err);
     res.status(500).json({ error: "Error al obtener usuarios" });
   }
 });
 
-app.post("/users", async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
+    // Check if user is admin
+    const currentUserRole = res.locals.oauth.token.user.role;
+    if (currentUserRole !== 'admin') {
+      return res.status(403).json({ error: "Acceso denegado. Solo administradores pueden crear usuarios." });
+    }
+    
     const { username, fullName, password, role, shiftId } = req.body;
 
     // Validate required fields

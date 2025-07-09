@@ -102,6 +102,33 @@
       "role": "supervisor",
       "shift_id": 1,
       "created_at": "2025-07-09T05:23:25.810Z"
+    },
+    {
+      "id": 28,
+      "username": "supervisor_test",
+      "full_name": "Supervisor Test",
+      "password_hash": "$2b$10$1XDZPchSZk/bDgJG96I9ZOqlkkrfV3mdc3Qup348FvFj6mtnzBHB.",
+      "role": "supervisor",
+      "shift_id": 1,
+      "created_at": "2025-07-09T05:38:18.081Z"
+    },
+    {
+      "id": 30,
+      "username": "storekeeper_test",
+      "full_name": "Storekeeper Test",
+      "password_hash": "$2b$10$mJEyHVLaFmemKDAO6NxR0uOR.SL8DYNis6.AYH0s8FjtIjNlxK4Wy",
+      "role": "storekeeper",
+      "shift_id": 1,
+      "created_at": "2025-07-09T05:38:26.174Z"
+    },
+    {
+      "id": 32,
+      "username": "operador_test",
+      "full_name": "Operador Test",
+      "password_hash": "$2b$10$5BQvbCHkRwRyJf.yw6P6z.FaoLE0BsqFeVsA6UTdA6J4qf21wy.Qy",
+      "role": "operador",
+      "shift_id": 1,
+      "created_at": "2025-07-09T05:38:36.660Z"
     }
   ],
   "products": [
@@ -477,6 +504,76 @@
       "access_token_expires_at": "2025-07-09T06:29:14.616Z",
       "client_id": "inventario-app",
       "user_id": 12
+    },
+    {
+      "id": 27,
+      "access_token": "b93ade87899c4371df0d4f5387e57b0c739971c7",
+      "access_token_expires_at": "2025-07-09T06:38:17.970Z",
+      "client_id": "inventario-app",
+      "user_id": 1
+    },
+    {
+      "id": 29,
+      "access_token": "7e95bc5ef488cf6dfb9bfa1fae3b7c1e3ef32db5",
+      "access_token_expires_at": "2025-07-09T06:38:26.064Z",
+      "client_id": "inventario-app",
+      "user_id": 1
+    },
+    {
+      "id": 31,
+      "access_token": "dd6de9902c60ae380811423102c3988d457f51ea",
+      "access_token_expires_at": "2025-07-09T06:38:36.508Z",
+      "client_id": "inventario-app",
+      "user_id": 1
+    },
+    {
+      "id": 33,
+      "access_token": "fb9a57b614ff0efcb90c7fe0fc7aee32c58f3d76",
+      "access_token_expires_at": "2025-07-09T06:38:43.989Z",
+      "client_id": "inventario-app",
+      "user_id": 14
+    },
+    {
+      "id": 34,
+      "access_token": "3ee762e9fad22827891604711f9c6c26e82b9793",
+      "access_token_expires_at": "2025-07-09T06:38:49.917Z",
+      "client_id": "inventario-app",
+      "user_id": 28
+    },
+    {
+      "id": 35,
+      "access_token": "ac9bf0192b53fa2273624b56b7057e1cd660ec59",
+      "access_token_expires_at": "2025-07-09T06:40:30.630Z",
+      "client_id": "inventario-app",
+      "user_id": 14
+    },
+    {
+      "id": 36,
+      "access_token": "6fc73a5f0eadbcd83a6d148616d1b543d8932aca",
+      "access_token_expires_at": "2025-07-09T06:41:18.891Z",
+      "client_id": "inventario-app",
+      "user_id": 14
+    },
+    {
+      "id": 37,
+      "access_token": "456966cc120aa67b8fd7e3619d7fc7ce5e30e201",
+      "access_token_expires_at": "2025-07-09T06:41:37.860Z",
+      "client_id": "inventario-app",
+      "user_id": 28
+    },
+    {
+      "id": 38,
+      "access_token": "485d286d32f0a8b43eaf3f5c5906c40d7369993b",
+      "access_token_expires_at": "2025-07-09T06:44:22.440Z",
+      "client_id": "inventario-app",
+      "user_id": 30
+    },
+    {
+      "id": 39,
+      "access_token": "ddef489d27df25524b11934273f5d0518336603b",
+      "access_token_expires_at": "2025-07-09T06:44:44.030Z",
+      "client_id": "inventario-app",
+      "user_id": 32
     }
   ],
   "oauth_refresh_tokens": []

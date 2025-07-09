@@ -221,7 +221,7 @@ export default {
         };
 
         // Call API to create user
-        await api.post("/users", userData);
+        await api.post("/api/users", userData);
 
         this.message = `Usuario '${userData.username}' creado exitosamente`;
         this.messageType = "success";

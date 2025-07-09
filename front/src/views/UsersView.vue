@@ -133,7 +133,7 @@ export default {
       this.error = null;
 
       try {
-        this.users = await api.get("/users");
+        this.users = await api.get("/api/users");
         console.log("✅ Users loaded:", this.users.length);
       } catch (error) {
         console.error("Error loading users:", error);
