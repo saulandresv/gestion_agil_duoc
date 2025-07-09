@@ -8,7 +8,10 @@
       "Bash(npm install:*)",
       "Bash(timeout:*)",
       "Bash(curl:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }

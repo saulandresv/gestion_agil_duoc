@@ -9,7 +9,7 @@ async function login(username, password) {
     const baseURL = process.env.VUE_APP_API_BASE_URL || "http://localhost:3000";
 
     const clientId = "inventario-app";
-    const clientSecret = "your-super-secret-client-secret";
+    const clientSecret = "inventario-secret";
     const basicAuth = btoa(`${clientId}:${clientSecret}`);
 
     const response = await fetch(`${baseURL}/oauth/token`, {

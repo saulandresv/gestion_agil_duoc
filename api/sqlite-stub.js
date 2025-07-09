@@ -15,11 +15,11 @@ class SQLiteStub {
     // Initialize with sample data structure
     this.data = {
       users: [
-        { id: 1, username: 'admin', full_name: 'Administrator', password_hash: 'hash', role: 'admin', shift_id: 1 },
-        { id: 2, username: 'juan.garcia', full_name: 'Juan García', password_hash: 'hash', role: 'admin', shift_id: 1 },
-        { id: 3, username: 'manuel.reyes', full_name: 'Manuel Reyes', password_hash: 'hash', role: 'supervisor', shift_id: 1 },
-        { id: 4, username: 'andres.leon', full_name: 'Andrés León', password_hash: 'hash', role: 'storekeeper', shift_id: 1 },
-        { id: 5, username: 'andres.perez', full_name: 'Andrés Pérez', password_hash: 'hash', role: 'operador', shift_id: 1 }
+        { id: 1, username: 'admin', full_name: 'Administrator', password_hash: '$2b$10$i26a98J0hNm1/9TsuSYS6eJxKygQM/v2NAQuxKsxzoEIIw1Rrl9xu', role: 'admin', shift_id: 1 },
+        { id: 2, username: 'juan.garcia', full_name: 'Juan García', password_hash: '$2b$10$i26a98J0hNm1/9TsuSYS6eJxKygQM/v2NAQuxKsxzoEIIw1Rrl9xu', role: 'admin', shift_id: 1 },
+        { id: 3, username: 'manuel.reyes', full_name: 'Manuel Reyes', password_hash: '$2b$10$i26a98J0hNm1/9TsuSYS6eJxKygQM/v2NAQuxKsxzoEIIw1Rrl9xu', role: 'supervisor', shift_id: 1 },
+        { id: 4, username: 'andres.leon', full_name: 'Andrés León', password_hash: '$2b$10$i26a98J0hNm1/9TsuSYS6eJxKygQM/v2NAQuxKsxzoEIIw1Rrl9xu', role: 'storekeeper', shift_id: 1 },
+        { id: 5, username: 'andres.perez', full_name: 'Andrés Pérez', password_hash: '$2b$10$i26a98J0hNm1/9TsuSYS6eJxKygQM/v2NAQuxKsxzoEIIw1Rrl9xu', role: 'operador', shift_id: 1 }
       ],
       products: [
         { id: 1, sku: 'SKU0001', name: 'Martillo perforador SDS-Max', description: 'Martillo eléctrico para perforación de roca', unit: 'EA', is_returnable: 1, category_id: 1 },
@@ -77,6 +77,7 @@ class SQLiteStub {
 
   executeQuery(sql, params = []) {
     console.log('Executing query (stub):', sql.substring(0, 100) + '...');
+    console.log('Query params:', params);
     
     // Convert SQL to basic operations
     const upperSQL = sql.toUpperCase().trim();
@@ -107,7 +108,10 @@ class SQLiteStub {
     
     if (sql.includes('FROM users')) {
       if (sql.includes('WHERE username')) {
-        const user = this.data.users.find(u => u.username === params[0]);
+        const username = Array.isArray(params) ? params[0] : params;
+        console.log('Searching for username:', username);
+        const user = this.data.users.find(u => u.username === username);
+        console.log('Found user:', user ? user.username : 'none');
         return user ? [user] : [];
       }
       return this.data.users;
@@ -196,6 +200,13 @@ class SQLiteStub {
   }
 
   handleUpdate(sql, params) {
+    if (sql.includes('users') && sql.includes('SET password_hash')) {
+      // Update all users with the new password hash
+      this.data.users.forEach(user => {
+        user.password_hash = params[0];
+      });
+      return { changes: this.data.users.length };
+    }
     return { changes: 1 };
   }
 

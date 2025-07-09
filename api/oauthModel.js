@@ -108,7 +108,7 @@ module.exports = {
 
       return {
         id: client.id,
-        grants: client.grants || ['password', 'client_credentials'],
+        grants: client.grants ? client.grants.split(',') : ['password', 'client_credentials'],
         redirectUris: client.redirect_uris
       };
     } catch (error) {
@@ -236,7 +236,7 @@ module.exports = {
         accessTokenExpiresAt: tokenData.access_token_expires_at,
         client: { 
           id: tokenData.client_id,
-          grants: tokenData.grants 
+          grants: tokenData.grants ? tokenData.grants.split(',') : ['password', 'client_credentials']
         },
         user: tokenData.user_id ? {
           id: tokenData.user_id,
@@ -279,7 +279,7 @@ module.exports = {
         refreshTokenExpiresAt: tokenData.refresh_token_expires_at,
         client: { 
           id: tokenData.client_id,
-          grants: tokenData.grants 
+          grants: tokenData.grants ? tokenData.grants.split(',') : ['password', 'client_credentials']
         },
         user: tokenData.user_id ? {
           id: tokenData.user_id,
