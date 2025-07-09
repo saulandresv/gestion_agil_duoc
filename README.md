@@ -16,6 +16,7 @@ Sistema de gestión de inventario con autenticación por roles y funcionalidad o
 # Copiar archivos de configuración
 cp .env.sample .env
 cp api/.env.sample api/.env
+cp front/.env.sample front/.env
 ```
 
 ### 2. Instalar dependencias
