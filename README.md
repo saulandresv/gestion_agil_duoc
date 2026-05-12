@@ -1,53 +1,14 @@
 # DUOC Inventario
 
-Sistema de gestión de inventario con autenticación por roles y funcionalidad offline.
+Sistema de gestión de inventario con autenticación por roles y soporte offline, desarrollado como proyecto de Gestión Ágil.
 
-## 🏗️ Arquitectura
+## Stack
 
-- **Frontend**: Vue 3 PWA con autenticación OAuth2
-- **API**: Express.js con SQLite (modo desarrollo)
-- **Autenticación**: Sistema de roles (admin, supervisor, storekeeper, operador)
+- **Frontend:** Vue 3 PWA con autenticación OAuth2
+- **API:** Express.js con SQLite
+- **Autenticación:** OAuth2 con sistema de roles (RBAC)
 
-## 🚀 Instalación
-
-### 1. Configurar variables de entorno
-
-```bash
-# Copiar archivos de configuración
-cp .env.sample .env
-cp api/.env.sample api/.env
-cp front/.env.sample front/.env
-```
-
-### 2. Instalar dependencias
-
-**Frontend:**
-```bash
-cd front
-npm install
-```
-
-**API:**
-```bash
-cd api
-npm install
-```
-
-### 3. Iniciar en desarrollo
-
-**Terminal 1 - API:**
-```bash
-cd api
-node index.js
-```
-
-**Terminal 2 - Frontend:**
-```bash
-cd front
-npm run serve
-```
-
-## 🔑 Usuarios predeterminados
+## Roles
 
 | Usuario | Contraseña | Rol |
 |---------|------------|-----|
@@ -56,98 +17,83 @@ npm run serve
 | andres.leon | password | Bodeguero |
 | andres.perez | password | Operador |
 
-## 📱 Funcionalidades por Rol
+### Permisos por rol
 
-### 👑 Administrador
-- Crear y gestionar usuarios
-- Acceso completo al sistema
-- Asignar permisos por rol
+| Función | Admin | Supervisor | Bodeguero | Operador |
+|---------|-------|-----------|-----------|---------|
+| Gestionar usuarios | ✓ | | | |
+| Crear/editar productos | ✓ | ✓ | | |
+| Registrar entrada/salida | ✓ | ✓ | ✓ | |
+| Visualizar inventario | ✓ | ✓ | ✓ | ✓ |
+| Crear solicitudes | | | | ✓ |
 
-### 👨‍💼 Supervisor
-- Registrar entrada/salida de componentes
-- Buscar componentes
-- Visualizar inventario
-- Crear y editar productos
-
-### 📦 Bodeguero
-- Registrar entrada/salida de componentes
-- Buscar componentes
-- Visualizar inventario
-
-### 👷 Operador
-- Visualizar inventario (solo lectura)
-- Crear solicitudes de componentes
-
-## 🛠️ Comandos útiles
+## Instalación
 
 ```bash
-# Instalar dependencias frontend
+# Variables de entorno
+cp .env.sample .env
+cp api/.env.sample api/.env
+cp front/.env.sample front/.env
+
+# Dependencias
 cd front && npm install
-
-# Servir frontend en desarrollo
-cd front && npm run serve
-
-# Construir para producción
-cd front && npm run build
-
-# Linter
-cd front && npm run lint
-
-# Iniciar API
-cd api && node index.js
-
-# Ver logs en tiempo real
-cd api && tail -f logs/app.log
+cd ../api && npm install
 ```
 
-## 📁 Estructura del proyecto
+## Desarrollo
+
+**Terminal 1 — API:**
+```bash
+cd api
+node index.js
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd front
+npm run serve
+```
+
+## Estructura
 
 ```
 ├── front/          # Vue 3 PWA
-│   ├── src/
-│   │   ├── views/     # Páginas principales
-│   │   ├── services/  # API y autenticación
-│   │   └── utils/     # Utilidades y guards
-├── api/            # Express.js API
-│   ├── index.js       # Servidor principal
-│   ├── oauthModel.js  # Modelo OAuth2
-│   └── database.js    # Conexión BD compartida
-└── README.md
+│   └── src/
+│       ├── views/     # Páginas principales
+│       ├── services/  # API y autenticación
+│       └── utils/     # Utilities y guards de ruta
+└── api/            # Express.js
+    ├── index.js       # Servidor principal
+    ├── oauthModel.js  # Modelo OAuth2
+    └── database.js    # Conexión SQLite
 ```
 
-## 🔧 Configuración
+## Variables de entorno
 
-### Variables de entorno (.env)
-```env
+**API (api/.env):**
+```
 NODE_ENV=development
 PORT=3001
 DB_PATH=./inventario.db
 ```
 
-### Variables de entorno frontend (front/.env)
-```env
+**Frontend (front/.env):**
+```
 VUE_APP_API_BASE_URL=http://localhost:3001
 ```
 
-## 🚀 Despliegue
+## Deploy
 
-### Frontend
 ```bash
-cd front
-npm run build
-# Servir desde dist/
+# Frontend
+cd front && npm run build
+
+# API con PM2
+cd api && pm2 start index.js --name inventario-api
 ```
 
-### API
-```bash
-cd api
-pm2 start index.js --name inventario-api
-```
+## Notas técnicas
 
-## 📋 Notas técnicas
-
-- **Base de datos**: SQLite en desarrollo, PostgreSQL en producción
-- **Autenticación**: OAuth2 con Bearer tokens
-- **Persistencia**: Archivo JSON para desarrollo
-- **Roles**: Control de acceso basado en roles (RBAC)
-- **Offline**: PWA con capacidades offline
+- Base de datos SQLite en desarrollo, PostgreSQL en producción
+- Autenticación OAuth2 con Bearer tokens
+- PWA con capacidades offline
